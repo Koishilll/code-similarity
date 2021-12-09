@@ -10,12 +10,11 @@ int main() {
 	cout << "hello" << endl;
 	myvec<int> vec;
 	vec.push_back(114514);
-	// auto func = []() {
-	// 	myvec<int> a;
-	// 	return a;
-	// };
-	// myvec<int> vec2 = (const myvec<int> &)func();
-	// _list_node<int> node;
-	// mylist<int> lst;
+	unordered_map<int, int> a;
+	string str { "str" };
+	cout << str.length() << endl;
+
+	mymap<int, int> map__;
+
 	cout << vec[0] << endl;
 }
