@@ -6,8 +6,10 @@ export module util.mylist;
 // 链表结点类型, 不导出
 template <typename elm_t>
 class _list_node {
-public:
+private:
     using node_t = _list_node<elm_t>;
+
+public:
     node_t *_next;
     node_t *_prev;
     elm_t data;
@@ -17,14 +19,15 @@ public:
 };
 
 
-// 迭代器, 不导出
+// 链表迭代器, 不导出
 template <typename elm_t>
-class _iterator {
-public:
-    using iterator = _iterator<elm_t>;
+class _list_iterator {
+private:
+    using iterator = _list_iterator<elm_t>;
     using node_t = _list_node<elm_t>;
 
-    _iterator(node_t *_n) : _mynode(_n) {};
+public:
+    _list_iterator(node_t *_n) : _mynode(_n) {};
 
     bool operator==(iterator &other) {
         return _mynode == other._mynode;
@@ -70,7 +73,7 @@ public:
         return *this;
     }
 
-private:
+// private:
     node_t *_mynode;
 };
 
@@ -79,9 +82,12 @@ private:
 export
 template <typename elm_t>
 class mylist {
-public:
-    using iterator = _iterator<elm_t>;
+private:
     using node_t = _list_node<elm_t>;
+    using _self_t = mylist<elm_t>;
+
+public:
+    using iterator = _list_iterator<elm_t>;
 
     mylist() {
         _head = new node_t;
@@ -146,6 +152,17 @@ public:
 
 
     /**
+     * @brief 删除尾部元素
+     */
+    void clear() {
+        size_t times = size();
+        for (int i = 0; i < times; ++i) {
+            pop_back();
+        }
+    }
+
+
+    /**
      * @brief 在尾部之后插入一个元素
      * @param value
      */
@@ -188,11 +205,11 @@ public:
 
 
     // 为了方便起见, 禁止复制
-    mylist<elm_t> &operator=(mylist<elm_t>) = delete;
+    _self_t &operator=(_self_t) = delete;
     // 为了方便起见, 禁止复制
-    mylist<elm_t> &operator=(const mylist<elm_t> &) = delete;
+    _self_t &operator=(const _self_t &) = delete;
     // 为了方便起见, 禁止复制
-    mylist<elm_t> &operator=(mylist<elm_t> &&) = delete;
+    _self_t &operator=(_self_t &&) = delete;
 
 
 private:

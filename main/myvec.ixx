@@ -1,4 +1,4 @@
-// 动态扩容数组, 仿制 std::vector
+// 自动扩容数组, 仿制 std::vector
 
 export module util.myvec;
 
@@ -7,14 +7,21 @@ export module util.myvec;
 export
 template <typename elm_t>
 class myvec {
+private:
+    using _self_t = myvec<elm_t>;
+
 public:
     myvec() {
-        _last = _first = new elm_t[16];
+		// 初始化预留一些空间, 注意: 仅分配空间, 不能构造!
+        // _last = _first = new elm_t[16];
+        _last = _first = (elm_t *) new char[sizeof (elm_t) * 16];
         _end = _first + 16;
     }
 
     ~myvec() {
-        delete[] _first;
+        clear();
+        delete[] (char *)_first;
+        _first = nullptr;
     }
 
 
@@ -26,7 +33,8 @@ public:
         if (_last == _end) {
             _enlarge(max_size() * 2);
         }
-        *_last = value;
+        // 调用放置构造函数而不是复制, 否则会先进行一次析构, 这会导致异常抛出
+        new (_last) elm_t(value);
         ++_last;
     }
 
@@ -37,7 +45,18 @@ public:
     void pop_back() {
         --_last;
         // 如果是类, 就析构
-        if constexpr (is_class<elm_t>::value) { ~*_last; }
+        if constexpr (is_class<elm_t>::value) { _last->~elm_t(); }
+    }
+
+
+    /**
+     * @brief 删除所有元素
+     */
+    void clear() {
+        size_t times = size();
+        for (int i = 0; i < times; ++i) {
+            pop_back();
+        }
     }
 
 
@@ -52,6 +71,7 @@ public:
             ++pointer;
         }
         pop_back();
+        return pointer;
     }
 
 
@@ -102,8 +122,7 @@ public:
 
 
     /**
-     * @brief 预留一些空间, 如果预留空间大于当前空间则增大当前空间,
-     * 否则不做任何事.
+     * @brief 扩大预留空间, 如果预留空间已经足够大, 那就不做任何事.
      * @param new_cap 至少预留的空间, 实际上会扩大至 2 的幂.
      */
     void reserve(size_t new_cap) {
@@ -115,11 +134,11 @@ public:
 
 
     // 为了方便起见, 禁止复制
-    myvec<elm_t> &operator=(myvec<elm_t>) = delete;
+    _self_t &operator=(_self_t) = delete;
     // 为了方便起见, 禁止复制
-    myvec<elm_t> &operator=(const myvec<elm_t> &) = delete;
+    _self_t &operator=(const _self_t &) = delete;
     // 为了方便起见, 禁止复制
-    myvec<elm_t> &operator=(myvec<elm_t> &&) = delete;
+    _self_t &operator=(_self_t &&) = delete;
 
 
 private:
@@ -129,11 +148,15 @@ private:
 
     void _enlarge(size_t new_cap) {
         size_t count = size();
-        elm_t *temp = new elm_t[new_cap];
+        elm_t *temp = (elm_t *) new char[sizeof (elm_t) * new_cap];
         for (size_t i = 0; i < count; ++i) {
-            temp[i] = _first[i];
+            // 调用放置构造函数而不是复制, 否则会先进行一次析构, 这会导致异常抛出
+            new (temp + i) elm_t(_first[i]);
+            // 如果是类, 就析构
+            if constexpr (is_class<elm_t>::value) { _first[i].~elm_t(); }
         }
-        delete[] _first;
+        // 此处如果不转为内置类型, 则会在没有对象的空间调用析构函数, 导致异常抛出
+        delete[] (char *)_first;
         _first = temp;
         _last = temp + count;
         _end = temp + new_cap;
