@@ -29,7 +29,7 @@ public:
      * @brief 在尾部之后插入一个元素
      * @param value
      */
-    void push_back(elm_t value) {
+    void push_back(const elm_t &value) {
         if (_last == _end) {
             _enlarge(max_size() * 2);
         }
@@ -133,12 +133,18 @@ public:
     }
 
 
-    // 为了方便起见, 禁止复制
-    _self_t &operator=(_self_t) = delete;
-    // 为了方便起见, 禁止复制
+    // 为了方便起见, 禁止复制赋值
     _self_t &operator=(const _self_t &) = delete;
-    // 为了方便起见, 禁止复制
-    _self_t &operator=(_self_t &&) = delete;
+    // 仅开放移动赋值, 而且禁止传递
+    void operator=(_self_t &&other) {
+        clear();
+        _first = other._first;
+        _last = other._last;
+        _end = other._end;
+        other._first = nullptr;
+        other._last = nullptr;
+        other._end = nullptr;
+    }
 
 
 private:

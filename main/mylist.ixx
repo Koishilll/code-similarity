@@ -27,6 +27,7 @@ private:
     using node_t = _list_node<elm_t>;
 
 public:
+    _list_iterator(const elm_t &elm) : _mynode(new node_t(elm)) {};
     _list_iterator(node_t *_n) : _mynode(_n) {};
 
     bool operator==(iterator &other) {
@@ -37,8 +38,8 @@ public:
         return _mynode->data;
     }
 
-    elm_t &operator->() {
-        return _mynode->data;
+    elm_t *operator->() {
+        return &_mynode->data;
     }
 
     iterator &operator++() {
@@ -63,14 +64,20 @@ public:
         return temp;
     }
 
-    iterator destroy() {
+    void insert(iterator other) {
+        iterator prv { _mynode->_prev };
+        other._mynode->_next = _mynode;
+        other._mynode->_prev = prv._mynode;
+        prv._mynode->_next = other._mynode;
+        _mynode->_prev = other._mynode;
+    }
+
+    void destroy() {
         node_t *next = _mynode->_next;
         node_t *prev = _mynode->_prev;
         prev->_next = next;
         next->_prev = prev;
         delete _mynode;
-        _mynode = next;
-        return *this;
     }
 
 // private:
@@ -96,11 +103,7 @@ public:
     }
 
     ~mylist() {
-        auto next_it = begin();
-        while (next_it != end()) {
-            auto now_it = next_it++;
-            now_it.destroy();
-        }
+        clear();
     }
 
 
@@ -128,13 +131,9 @@ public:
      * @param value
      * @return iterator 新插入元素的迭代器
      */
-    iterator insert(iterator pos, elm_t value) {
-        iterator now = pos--;
-        iterator ins { new node_t(value) };
-        ins._mynode->_next = now._mynode;
-        ins._mynode->_prev = pos._mynode;
-        now._mynode->_prev = ins._mynode;
-        pos._mynode->_next = ins._mynode;
+    iterator insert(iterator pos, const elm_t &value) {
+        iterator ins { value };
+        pos.insert(ins);
         ++_size;
         return ins;
     }
@@ -145,20 +144,24 @@ public:
      * @param pointer
      * @return iterator 随后元素的迭代器
      */
-    iterator erase(iterator pointer) {
+    iterator erase(iterator pos) {
         --_size;
-        return pointer.destroy();
+        iterator now = pos++;
+        now.destroy();
+        return pos;
     }
 
 
     /**
-     * @brief 删除尾部元素
+     * @brief 删除所有元素
      */
     void clear() {
-        size_t times = size();
-        for (int i = 0; i < times; ++i) {
-            pop_back();
+        auto next_it = begin();
+        while (next_it != end()) {
+            auto now_it = next_it++;
+            now_it.destroy();
         }
+        _size = 0;
     }
 
 
@@ -166,7 +169,7 @@ public:
      * @brief 在尾部之后插入一个元素
      * @param value
      */
-    void push_back(elm_t value) {
+    void push_back(const elm_t &value) {
         insert(end(), value);
     }
 
@@ -175,7 +178,7 @@ public:
      * @brief 在头部前面插入一个元素
      * @param value
      */
-    void push_front(elm_t value) {
+    void push_front(const elm_t &value) {
         insert(begin(), value);
     }
 
@@ -186,6 +189,7 @@ public:
     void pop_back() {
         erase(--end());
     }
+
 
     /**
      * @brief 删除头部元素
@@ -204,16 +208,20 @@ public:
     }
 
 
-    // 为了方便起见, 禁止复制
-    _self_t &operator=(_self_t) = delete;
-    // 为了方便起见, 禁止复制
+    // 为了方便起见, 禁止复制赋值
     _self_t &operator=(const _self_t &) = delete;
-    // 为了方便起见, 禁止复制
-    _self_t &operator=(_self_t &&) = delete;
+    // 仅开放移动赋值, 而且禁止传递
+    void operator=(_self_t &&other) {
+        clear();
+        auto nohead = _head;
+        _head = other._head;
+        _size = other._size;
+        other._head = nohead;
+        other._size = 0;
+    }
 
 
 private:
     node_t *_head;
     size_t _size;
-    // void _enlarge(size_t new_cap);
 };

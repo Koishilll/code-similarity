@@ -11,6 +11,14 @@ import util.mylist;
 
 using std::string;
 using std::pair;
+using std::move;
+using std::initializer_list;
+
+
+template <typename key_t>
+unsigned hash_wrap(const key_t &to_hash, unsigned seed);
+
+unsigned MurmurHash2(const void *key, unsigned len, unsigned seed);
 
 
 // 哈希表迭代器, 不导出
@@ -20,53 +28,52 @@ private:
     using val_t = pair<key_t, elm_t>;
     using val_hash_t = pair<val_t, unsigned>;
     using iterator = _map_iterator<key_t, elm_t>;
-    // using node_t = mylist<val_hash_t>::node_t;
+    using _list_iter = mylist<val_hash_t>::iterator;
 
 public:
-    _map_iterator(mylist<val_hash_t>::iterator _it) : _myiter(_it) {};
+    _map_iterator(_list_iter _it) : _myiter(_it) {};
+    _map_iterator(val_hash_t pr) : _myiter(pr) {};
 
-    val_t &operator*() {
-        return _myiter->data.first;
+    bool operator==(iterator other) {
+        return _myiter == other._myiter;
     }
 
-    val_t &operator->() {
-        return _myiter->data.first;
+    val_t &operator*() {
+        return _myiter->first;
+    }
+
+    val_t *operator->() {
+        return &_myiter->first;
     }
 
     iterator &operator++() {
-        _myiter = _myiter->_next;
+        ++_myiter;
         return *this;
     }
 
     iterator operator++(int) {
         iterator temp = *this;
-        _myiter = _myiter->_next;
+        ++_myiter;
         return temp;
     }
 
     iterator &operator--() {
-        _myiter = _myiter->_prev;
+        --_myiter;
         return *this;
     }
 
     iterator operator--(int) {
         iterator temp = *this;
-        _myiter = _myiter->_prev;
+        --_myiter;
         return temp;
     }
 
     iterator destroy() {
-        // node_t *next = _myiter->_next;
-        // node_t *prev = _myiter->_prev;
-        // prev->_next = next;
-        // next->_prev = prev;
-        // delete _myiter;
-        // _myiter = next;
         _myiter = _myiter.destroy();
         return *this;
     }
 
-private:
+// private:
     mylist<val_hash_t>::iterator _myiter;
 };
 
@@ -78,17 +85,24 @@ class mymap {
 private:
     using val_t = pair<key_t, elm_t>;
     using val_hash_t = pair<val_t, unsigned>;
-    // using node_t = mylist<val_hash_t>::node_t;
+    using _self_t = mymap<key_t, elm_t>;
 
 public:
     using iterator = _map_iterator<key_t, elm_t>;
 
-    mymap() {
-        // TODO: 构造函数
-        _mask = 127; // 初始化为 128 个桶
+    // 初始化 128 个桶
+    mymap() : mymap(128) {}
+
+    // 初始化桶数为 2 的幂时, -1 后二进制是 000..00111..11
+    mymap(size_t bucket_count) {
+        unsigned count = 1;
+        while (count < bucket_count) { count <<= 1; }
+        _mask = count - 1;
+
+        _range.reserve(count);
         iterator head { _table.end() };
         auto null_range = pair { head, head };
-        for (int i = 0; i < 128; ++i) {
+        for (size_t i = 0; i < count; ++i) {
             _range.push_back(null_range);
         }
     }
@@ -97,25 +111,118 @@ public:
 
 
     /**
-     * @brief 插入一个键值对, 返回两个值, 即将插入的位置和插入是否成功
-     * 如果插入成功, 返回该位置和 true
-     * 如果插入成功, 返回冲突的位置和 false
-     * @param value 要插入的键值对
-     * @return pair<iter_t, bool> 即将插入的位置和插入是否成功
+     * @brief 获得头部迭代器
+     * @return iterator
      */
-    pair<iterator, bool> insert(val_t value) {
-        key_t key = value.first;
-        unsigned hash = _hash(key);
-        // _table
+    iterator begin() {
+        return _table.begin();
     }
 
 
-    // 为了方便起见, 禁止复制
-    mymap<key_t, elm_t> &operator=(mymap<key_t, elm_t>) = delete;
-    // 为了方便起见, 禁止复制
-    mymap<key_t, elm_t> &operator=(const mymap<key_t, elm_t> &) = delete;
-    // 为了方便起见, 禁止复制
-    mymap<key_t, elm_t> &operator=(mymap<key_t, elm_t> &&) = delete;
+    /**
+     * @brief 获得尾后迭代器
+     * @return iterator
+     */
+    iterator end() {
+        return _table.end();
+    }
+
+
+    /**
+     * @brief 删除所有元素
+     */
+    void clear() {
+        _range.clear();
+        _table.clear();
+    }
+
+
+    /**
+     * @brief 返回元素个数
+     * @return size_t
+     */
+    size_t size() {
+        return _table.size();
+    }
+
+
+    /**
+     * @brief 查找和指定键等价的元素
+     * @param key
+     * @return iterator 查找成功返回对应位置迭代器, 否则返回 end()
+     */
+    iterator find(const key_t &key) {
+        return _myfind(key, _hash(key));
+    }
+
+
+    /**
+     * @brief 插入一个键值对, 返回两个值: 即将插入的位置和插入是否成功
+     * 如果插入成功, 返回该位置和 true
+     * 如果插入成功, 返回冲突的位置和 false
+     * 为了保证查找效率, 如果已有键值对大于桶数, 则会自动重新哈希
+     * @param value 要插入的键值对
+     * @return pair<iterator, bool> 即将插入的位置和插入是否成功
+     */
+    pair<iterator, bool> insert(const val_t &value) {
+        unsigned hash = _hash(value.first);
+        iterator found = _myfind(value.first, hash);
+
+        // 键存在冲突, 插入失败
+        if (found != end()) {
+            return { found, false };
+        }
+        size_t max_size = _mask + 1;
+        if (max_size <= size()) { _rehash(max_size * 2); }
+
+        // 插入到范围的开头
+        unsigned bucket = hash & _mask;
+        iterator where = _range[bucket].first;
+        iterator ins = _table.insert(where._myiter, { value, hash });
+        _range[bucket].first = ins;
+        return { ins, true };
+    }
+
+
+    /**
+     * @brief 访问已存在的键值对, 或者在不存在的情况下自动插入一个
+     * @param key
+     * @return elm_t&
+     */
+    elm_t &operator[](const key_t &key) {
+        // auto it = _myfind(key, _hash(key));
+        // if (it == end()) {
+        //     elm_t elm;
+        //     it = insert({ key, elm }).first;
+        // }
+        // return it->second;
+        elm_t elm {};
+        return insert({ key, elm }).first->second;
+    }
+
+
+    /**
+     * @brief 增加桶数, 如果桶数已经够多了, 那就不做任何事
+     * 为了保证查找效率, 如果已有键值对大于桶数, 则会自动调用.
+     * 增加桶数会导致所有键重新哈希, 这将花费巨大!
+     * @param new_buk 至少预留的桶数, 实际上会扩大至 2 的幂.
+     */
+    void reserve(size_t new_buk) {
+        size_t max_size = _mask + 1;
+        if (max_size >= new_buk) { return; }
+        while (max_size < new_buk) { max_size <<= 1; }
+        _rehash(max_size);
+    }
+
+
+    // 为了方便起见, 禁止复制赋值
+    _self_t &operator=(const _self_t &) = delete;
+    // 仅开放移动赋值, 而且禁止传递
+    void operator=(_self_t &&other) {
+        _table = move(other._table);
+        _range = move(other._range);
+        _mask = other._mask;
+    }
 
 
 private:
@@ -124,18 +231,47 @@ private:
     unsigned _mask;
     constexpr static unsigned _seed = 114514;
 
-    unsigned _hash(key_t to_hash) {
-        return MurmurHash2(&to_hash, sizeof (key_t), _seed);
+    // 求一个键的哈希值
+    unsigned _hash(const key_t &to_hash) {
+        return hash_wrap(to_hash, _seed);
     }
-    unsigned _hash(const string &str) {
-        return MurmurHash2(str.c_str(), str.length(), _seed);
+
+    // 内部带哈希值查找
+    iterator _myfind(const key_t &key, unsigned hash) {
+        unsigned bucket = hash & _mask;
+        for (auto it = _range[bucket].first;
+                  it != _range[bucket].second; ++it) {
+            if (it->first == key) { return it; }
+        }
+        return end();
+    }
+
+    // 内部重新哈希
+    void _rehash(size_t new_buk) {
+        _self_t other { new_buk };
+        for (auto elm : *this) {
+            other.insert(elm);
+        }
+        *this = move(other);
     }
 };
 
 
+export
+template <typename key_t>
+unsigned hash_wrap(const key_t &to_hash, unsigned seed) {
+    return MurmurHash2(&to_hash, sizeof (key_t), seed);
+}
+
+
+template <>
+unsigned hash_wrap(const string &str, unsigned seed) {
+    return MurmurHash2(str.c_str(), str.length(), seed);
+}
+
 
 // 请看: https://github.com/abrandoned/murmur2/blob/master/MurmurHash2.c
-unsigned MurmurHash2(const void *key, int len, unsigned seed) {
+unsigned MurmurHash2(const void *key, unsigned len, unsigned seed) {
     // 'm' 和 'r' 是离线生成的混合常量.
     // 它们不是什么魔法, 只是刚好表现很好而已.
     const unsigned m = 0x5bd1e995;
