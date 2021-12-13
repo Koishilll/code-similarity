@@ -7,6 +7,7 @@
 #include "MfcMain.h"
 #include "MfcMainDlg.h"
 #include "afxdialogex.h"
+#include "myfn.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -32,6 +33,7 @@ BEGIN_MESSAGE_MAP(CMfcMainDlg, CDialogEx)
     ON_WM_PAINT()
     ON_WM_QUERYDRAGICON()
     ON_BN_CLICKED(IDC_BUTTON1, &CMfcMainDlg::OnBnClickedButton1)
+    ON_BN_CLICKED(IDCANCEL, &CMfcMainDlg::OnBnClickedCancel)
 END_MESSAGE_MAP()
 
 
@@ -92,21 +94,29 @@ HCURSOR CMfcMainDlg::OnQueryDragIcon()
 void CMfcMainDlg::OnBnClickedButton1()
 {
     // TODO: 在此添加控件通知处理程序代码
-    CFileDialog fileDlg(true);
-    fileDlg.m_ofn.lpstrInitialDir = _T("C:\\");
-    CString strFilePath = fileDlg.GetPathName();
+    // CFileDialog fileDlg(true);
+    // fileDlg.m_ofn.lpstrInitialDir = _T("C:\\");
+    // CString strFilePath = fileDlg.GetPathName();
 
-    // 显示打开文件对话框
-    if (IDOK == fileDlg.DoModal()) {
-        strFilePath = fileDlg.GetPathName();
-    }
-    std::ifstream ifs { strFilePath, ifs.binary };
-    CString code;
-    char buf[10005];
+    // // 显示打开文件对话框
+    // if (IDOK == fileDlg.DoModal()) {
+    //     strFilePath = fileDlg.GetPathName();
+    // }
+    // std::ifstream ifs { strFilePath, ifs.binary };
+    // CString code;
+    // char buf[10005];
 
-    while (ifs) {
-        ifs.read(buf, 10000);
-        code += buf;
-    }
-    GetDlgItem(IDC_EDIT1)->SetWindowText(code);
+    // while (ifs) {
+    //     ifs.read(buf, 10000);
+    //     code += buf;
+    // }
+    // GetDlgItem(IDC_EDIT1)->SetWindowText(code);
+    openFileToEditbox(GetDlgItem(IDC_EDIT1));
+}
+
+
+void CMfcMainDlg::OnBnClickedCancel()
+{
+    // TODO: 在此添加控件通知处理程序代码
+    CDialogEx::OnCancel();
 }
