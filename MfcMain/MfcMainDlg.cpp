@@ -9,6 +9,8 @@
 #include "afxdialogex.h"
 #include "myfn.h"
 
+#include "AnalysisDlg.h"
+
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
@@ -34,6 +36,8 @@ BEGIN_MESSAGE_MAP(CMfcMainDlg, CDialogEx)
     ON_WM_QUERYDRAGICON()
     ON_BN_CLICKED(IDC_BUTTON1, &CMfcMainDlg::OnBnClickedButton1)
     ON_BN_CLICKED(IDCANCEL, &CMfcMainDlg::OnBnClickedCancel)
+    ON_BN_CLICKED(IDC_BUTTON2, &CMfcMainDlg::OnBnClickedButton2)
+    ON_BN_CLICKED(IDOK, &CMfcMainDlg::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 
@@ -49,6 +53,7 @@ BOOL CMfcMainDlg::OnInitDialog()
     SetIcon(m_hIcon, FALSE);		// 设置小图标
 
     // TODO: 在此添加额外的初始化代码
+    analysisDlg.Create(IDD_DIALOG1);
 
     return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -94,23 +99,6 @@ HCURSOR CMfcMainDlg::OnQueryDragIcon()
 void CMfcMainDlg::OnBnClickedButton1()
 {
     // TODO: 在此添加控件通知处理程序代码
-    // CFileDialog fileDlg(true);
-    // fileDlg.m_ofn.lpstrInitialDir = _T("C:\\");
-    // CString strFilePath = fileDlg.GetPathName();
-
-    // // 显示打开文件对话框
-    // if (IDOK == fileDlg.DoModal()) {
-    //     strFilePath = fileDlg.GetPathName();
-    // }
-    // std::ifstream ifs { strFilePath, ifs.binary };
-    // CString code;
-    // char buf[10005];
-
-    // while (ifs) {
-    //     ifs.read(buf, 10000);
-    //     code += buf;
-    // }
-    // GetDlgItem(IDC_EDIT1)->SetWindowText(code);
     openFileToEditbox(GetDlgItem(IDC_EDIT1));
 }
 
@@ -119,4 +107,23 @@ void CMfcMainDlg::OnBnClickedCancel()
 {
     // TODO: 在此添加控件通知处理程序代码
     CDialogEx::OnCancel();
+}
+
+
+void CMfcMainDlg::OnBnClickedButton2()
+{
+    // TODO: 在此添加控件通知处理程序代码
+    openFileToEditbox(GetDlgItem(IDC_EDIT2));
+}
+
+
+void CMfcMainDlg::OnBnClickedOk()
+{
+    // TODO: 在此添加控件通知处理程序代码
+    // CDialogEx::OnOK();
+    analysisDlg.CenterWindow();
+    analysisDlg.ShowWindow(SW_NORMAL);
+
+    analyse(analysisDlg.GetDlgItem(IDC_EDIT1), 
+        GetDlgItem(IDC_EDIT1), GetDlgItem(IDC_EDIT2));
 }

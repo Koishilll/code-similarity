@@ -10,5 +10,7 @@
 // 添加要在此处预编译的标头
 #include "framework.h"
 #include <fstream>
+#include <sstream>
+#include <cctype>
 
 #endif //PCH_H

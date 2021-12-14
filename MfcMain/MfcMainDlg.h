@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "AnalysisDlg.h"
+
 
 // CMfcMainDlg 对话框
 class CMfcMainDlg : public CDialogEx
@@ -24,6 +26,7 @@ public:
 // 实现
 protected:
     HICON m_hIcon;
+    CAnalysisDlg analysisDlg;
 
     // 生成的消息映射函数
     virtual BOOL OnInitDialog();
@@ -33,4 +36,6 @@ protected:
 public:
     afx_msg void OnBnClickedButton1();
     afx_msg void OnBnClickedCancel();
+    afx_msg void OnBnClickedButton2();
+    afx_msg void OnBnClickedOk();
 };

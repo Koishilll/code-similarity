@@ -36,6 +36,9 @@
     <ClInclude Include="myfn.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="AnalysisDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MfcMain.cpp">
@@ -48,6 +51,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="myfn.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AnalysisDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

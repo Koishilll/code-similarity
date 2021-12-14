@@ -1,7 +1,7 @@
 // 哈希表, 仿制 std::unordered_map
 
-module;
-#include <type_traits>
+// module;
+// #include <type_traits>
 
 export module util.mymap;
 import std.core;
@@ -18,7 +18,7 @@ using std::initializer_list;
 template <typename key_t>
 unsigned hash_wrap(const key_t &to_hash, unsigned seed);
 
-unsigned MurmurHash2(const void *key, unsigned len, unsigned seed);
+unsigned MurmurHash2(const void *key, size_t len, unsigned seed);
 
 
 // 哈希表迭代器, 不导出
@@ -271,14 +271,14 @@ unsigned hash_wrap(const string &str, unsigned seed) {
 
 
 // 请看: https://github.com/abrandoned/murmur2/blob/master/MurmurHash2.c
-unsigned MurmurHash2(const void *key, unsigned len, unsigned seed) {
+unsigned MurmurHash2(const void *key, size_t len, unsigned seed) {
     // 'm' 和 'r' 是离线生成的混合常量.
     // 它们不是什么魔法, 只是刚好表现很好而已.
     const unsigned m = 0x5bd1e995;
     const int r = 24;
 
     // 初始化散列值为一个伪随机数
-    unsigned h = seed ^ len;
+    unsigned h = seed ^ (unsigned)len;
 
     // 每次将四个字节混入散列值
     const unsigned char *data = (const unsigned char *)key;
