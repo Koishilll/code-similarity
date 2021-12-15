@@ -124,6 +124,11 @@ void CMfcMainDlg::OnBnClickedOk()
     analysisDlg.CenterWindow();
     analysisDlg.ShowWindow(SW_NORMAL);
 
-    analyse(analysisDlg.GetDlgItem(IDC_EDIT1), 
-        GetDlgItem(IDC_EDIT1), GetDlgItem(IDC_EDIT2));
+    analyse(
+        GetDlgItem(IDC_EDIT1),
+        GetDlgItem(IDC_EDIT2),
+        analysisDlg.GetDlgItem(IDC_EDIT1),
+        analysisDlg.GetDlgItem(IDC_EDIT2),
+        analysisDlg.GetDlgItem(IDC_EDIT3)
+    );
 }
