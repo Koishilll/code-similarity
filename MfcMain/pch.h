@@ -9,8 +9,23 @@
 
 // 添加要在此处预编译的标头
 #include "framework.h"
+
+// #include <iostream>
+#include <type_traits>
+#include <string>
+// #include <regex>
+// #include <format>
+#include <algorithm>
+// #include <sstream>
+
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <cctype>
+#include <unordered_map>
+#include "myfn.h"
+#include "myvec.cpp"
+#include "mylist.cpp"
+#include "mymap.cpp"
 
 #endif //PCH_H

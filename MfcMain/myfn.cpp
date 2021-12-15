@@ -1,8 +1,56 @@
-﻿#include "pch.h"
+﻿// module;
+#include "pch.h"
 
 // import std.core;
-// import util.mymap;
-// import util.myvec;
+// import util2.mymap;
+// import util2.myvec;
+
+
+
+/**
+ * @brief 哈希函数的实现
+ * 请看: https://github.com/abrandoned/murmur2/blob/master/MurmurHash2.c
+ */
+unsigned MurmurHash2(const void *key, size_t len, unsigned seed) {
+    // 'm' 和 'r' 是离线生成的混合常量.
+    // 它们不是什么魔法, 只是刚好表现很好而已.
+    const unsigned m = 0x5bd1e995;
+    const int r = 24;
+
+    // 初始化散列值为一个伪随机数
+    unsigned h = seed ^ (unsigned)len;
+
+    // 每次将四个字节混入散列值
+    const unsigned char *data = (const unsigned char *)key;
+    while (len >= 4) {
+        unsigned k = *(unsigned *)data;
+
+        k *= m;
+        k ^= k >> r;
+        k *= m;
+
+        h *= m;
+        h ^= k;
+
+        data += 4;
+        len -= 4;
+    }
+
+    // 处理最后几个字节
+    switch (len) {
+    case 3: h ^= data[2] << 16;
+    case 2: h ^= data[1] << 8;
+    case 1: h ^= data[0];
+        h *= m;
+    };
+
+    // 再混合一次以确保最后几个字节充分混合
+    h ^= h >> 13;
+    h *= m;
+    h ^= h >> 15;
+
+    return h;
+}
 
 
 /**
@@ -85,8 +133,9 @@ void analyse(CWnd *infobox, CWnd *codebox1, CWnd *codebox2) {
     for (auto box : { codebox1, codebox2 }) {
         CString words, word, gotText;
         size_t size = 0, len;
-        // mymap<string, int> wordMap;
+        mymap<std::wstring, int> wordMap;
         // myvec<int> wordVec;
+        // std::unordered_map<std::wstring, int> wordMap;
 
         box->GetWindowTextW(gotText);
         gotText += L"\r\n";
@@ -98,13 +147,24 @@ void analyse(CWnd *infobox, CWnd *codebox1, CWnd *codebox2) {
             // TRACE("第 %d 次打印\n", ++times);
             std::tie(word, size) = getNextToken(gotText, size);
             if (size >= len) { break; }
-            if (word != L"") { (words += word) += L"\r\n"; }
+            if (word != L"") {
+                (words += word) += L"\r\n";
+                ++wordMap[std::wstring{word}];
+            }
         }
-        words += L"\r\n";
+
+        // 分析这些关键词
+        output += L"=== === === === === === === ===\r\n";
         output += box == codebox1 ? L"代码 1 " : L"代码 2 ";
-        (output += L"的分词是: \r\n") += words;
+        output += L"的词频列表是: \r\n";
+        // (output += L"的分词是: \r\n") += words;
+        for (auto &pr : wordMap) {
+            (output += pr.first.c_str()) += L" 出现了 ";
+            (output += std::to_wstring(pr.second).c_str()) += " 次\r\n";
+        }
     }
 
     // 写入分析结果
+    output += L"=== === === === === === === ===\r\n分析完成\r\n";
     infobox->SetWindowTextW(output);
 }

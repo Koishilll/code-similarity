@@ -1,13 +1,12 @@
 // 自动扩容数组, 仿制 std::vector
 
-module;
+#ifndef __MYVEC__
+#define __MYVEC__
+
+
 #include <type_traits>
 
-export module util.myvec;
 
-
-// 导出数组
-export
 template <typename elm_t>
 class myvec {
 private:
@@ -48,7 +47,7 @@ public:
     void pop_back() {
         --_last;
         // 如果是类, 就析构
-        if constexpr (is_class<elm_t>::value) { _last->~elm_t(); }
+        if constexpr (std::is_class<elm_t>::value) { _last->~elm_t(); }
     }
 
 
@@ -162,7 +161,7 @@ private:
             // 调用放置构造函数而不是复制, 否则会先进行一次析构, 这会导致异常抛出
             new (temp + i) elm_t(_first[i]);
             // 如果是类, 就析构
-            if constexpr (is_class<elm_t>::value) { _first[i].~elm_t(); }
+            if constexpr (std::is_class<elm_t>::value) { _first[i].~elm_t(); }
         }
         // 此处如果不转为内置类型, 则会在没有对象的空间调用析构函数, 导致异常抛出
         delete[] (char *)_first;
@@ -171,3 +170,6 @@ private:
         _end = temp + new_cap;
     }
 };
+
+
+#endif /* __MYVEC__ */

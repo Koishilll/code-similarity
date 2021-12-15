@@ -56,6 +56,15 @@
     <ClCompile Include="AnalysisDlg.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="mymap.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="myvec.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="mylist.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MfcMain.rc">

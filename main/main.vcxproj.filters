@@ -10,20 +10,20 @@
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
     <Filter Include="源文件\util">
-      <UniqueIdentifier>{aab18e74-50cb-4088-a05a-781f698d5c73}</UniqueIdentifier>
+      <UniqueIdentifier>{89314f95-61a5-43e6-87da-1028ceb8bf19}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="myvec.ixx">
+    <ClCompile Include="mylist.ixx">
       <Filter>源文件\util</Filter>
     </ClCompile>
     <ClCompile Include="mymap.ixx">
       <Filter>源文件\util</Filter>
     </ClCompile>
-    <ClCompile Include="mylist.ixx">
+    <ClCompile Include="myvec.ixx">
       <Filter>源文件\util</Filter>
     </ClCompile>
   </ItemGroup>
