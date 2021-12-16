@@ -1,5 +1,6 @@
 ﻿// module;
 #include "pch.h"
+#include "myfn.h"
 
 
 unsigned MurmurHash2(const void *key, size_t len, unsigned seed) {
@@ -239,6 +240,196 @@ START:
 }
 
 
+double getInnerProduct(const myvec<pair<std::wstring, int>> &vec1,
+        const myvec<pair<std::wstring, int>> &vec2) {
+    int size = vec1.size();
+    double product = 0;
+    for (int i = 0; i < size; ++i) {
+        product += vec1[i].second * vec2[i].second;
+    }
+    return product;
+}
+
+
+double getL1Norm(const myvec<pair<std::wstring, int>> &vec1,
+        const myvec<pair<std::wstring, int>> &vec2) {
+    int size = vec1.size();
+    double sum = 0;
+    for (int i = 0; i < size; ++i) {
+        sum += abs(vec1[i].second - vec2[i].second);
+    }
+    return sum;
+}
+
+
+double getL2Norm(const myvec<pair<std::wstring, int>> &vec1,
+        const myvec<pair<std::wstring, int>> &vec2) {
+    int size = vec1.size();
+    double sum = 0, diff;
+    for (int i = 0; i < size; ++i) {
+        diff = vec1[i].second - vec2[i].second;
+        sum += diff * diff;
+    }
+    return sum;
+}
+
+
+double getCosDistance(const myvec<pair<std::wstring, int>> &vec1,
+        const myvec<pair<std::wstring, int>> &vec2) {
+    double numer = getInnerProduct(vec1, vec2);
+    double denom = sqrt(getInnerProduct(vec1, vec1)) *
+                   sqrt(getInnerProduct(vec2, vec2));
+    return numer / (denom + 0.000000001);
+}
+
+
+CString calcDiff(const mymap<std::wstring, int> &map1,
+        const mymap<std::wstring, int> &map2) {
+    using map_t = mymap<std::wstring, int>;
+    static const wchar_t *allKeywordsArray[] {
+        L"and"         , L"and_eq"      , L"asm"         , L"auto"        ,
+        L"bitand"      , L"bitor"       , L"bool"        , L"break"       ,
+        L"case"        , L"catch"       , L"char"        , L"char8_t"     ,
+        L"char16_t"    , L"char32_t"    , L"class"       , L"compl"       ,
+        L"const"       , L"constexpr"   , L"continue"    , L"co_await"    ,
+        L"co_return"   , L"co_yield"    , L"decltype"    , L"default"     ,
+        L"delete"      , L"do"          , L"double"      , L"dynamic_cast",
+        L"else"        , L"enum"        , L"explicit"    , L"export"      ,
+        L"extern"      , L"false"       , L"float"       , L"for"         ,
+        L"friend"      , L"goto"        , L"if"          , L"inline"      ,
+        L"import"      , L"int"         , L"long"        , L"mutable"     ,
+        L"namespace"   , L"new"         , L"noexcept"    , L"not"         ,
+        L"not_eq"      , L"nullptr"     , L"operator"    , L"or"          ,
+        L"or_eq"       , L"private"     , L"protected"   , L"public"      ,
+        L"requires"    , L"return"      , L"short"       , L"signed"      ,
+        L"sizeof"      , L"static"      , L"static_cast" ,
+        L"struct"      , L"switch"      , L"template"    , L"this"        ,
+        L"throw"       , L"true"        , L"try"         , L"typedef"     ,
+        L"typename"    , L"union"       , L"unsigned"    , L"using"       ,
+        L"virtual"     , L"void"        , L"volatile"    , L"wchar_t"     ,
+        L"while"       , L"xor"         , L"xor_eq"      , L"static_assert"
+    };
+
+    // 把所有关键词放入哈希表
+    static map_t allKeywords;
+    if (allKeywords.size() == 0) {
+        for (auto &word : allKeywordsArray) { ++allKeywords[word]; }
+    }
+
+    // 查看两个代码的单词都有哪些是关键词
+    map_t key1, ident1;
+    for (auto &pr : map1) {
+        (allKeywords[pr.first] ? key1 : ident1)[pr.first] = pr.second;
+    }
+    map_t key2, ident2;
+    for (auto &pr : map2) {
+        (allKeywords[pr.first] ? key2 : ident2)[pr.first] = pr.second;
+    }
+
+    int first = 1;
+    CString out1 { L"=== === === === === === === ===\r\n"
+        L"代码 1 的关键词有:\r\n" };
+    for (auto &pr : key1) {
+        if (first) { first = 0; }
+        else { out1 += L", "; }
+        out1 += pr.first.c_str();
+    }
+    first = 1;
+    out1 += L"\r\n用户定义标识符有:\r\n";
+    for (auto &pr : ident1) {
+        if (first) { first = 0; }
+        else { out1 += L", "; }
+        out1 += pr.first.c_str();
+    }
+    out1 += L"\r\n";
+
+    first = 1;
+    CString out2 { L"=== === === === === === === ===\r\n"
+        L"代码 2 的关键词有:\r\n" };
+    for (auto &pr : key2) {
+        if (first) { first = 0; }
+        else { out2 += L", "; }
+        out2 += pr.first.c_str();
+    }
+    first = 1;
+    out2 += L"\r\n用户定义标识符有:\r\n";
+    for (auto &pr : ident2) {
+        if (first) { first = 0; }
+        else { out2 += L", "; }
+        out2 += pr.first.c_str();
+    }
+    out2 += L"\r\n";
+
+    // 把代码 1 的单词列表和代码 2 的单词列表加载到对方
+    for (auto &pr : key1) { key2[pr.first]; }
+    for (auto &pr : key2) { key1[pr.first]; }
+    for (auto &pr : ident1) { ident2[pr.first]; }
+    for (auto &pr : ident2) { ident1[pr.first]; }
+
+    // 把散列表中的内容放到数组里
+    using val_t = map_t::val_t;
+    myvec<val_t> keyVec1, keyVec2, idVec1, idVec2;
+    keyVec1.reserve(key1.size());
+    keyVec2.reserve(key2.size());
+    idVec1.reserve(ident1.size());
+    idVec2.reserve(ident2.size());
+    for (auto &pr : key1) { keyVec1.push_back(pr); }
+    for (auto &pr : key2) { keyVec2.push_back(pr); }
+    for (auto &pr : ident1) { idVec1.push_back(pr); }
+    for (auto &pr : ident2) { idVec2.push_back(pr); }
+    std::sort(keyVec1.begin(), keyVec1.end());
+    std::sort(keyVec2.begin(), keyVec2.end());
+    std::sort(idVec1.begin(), idVec1.end());
+    std::sort(idVec2.begin(), idVec2.end());
+
+    // int size = idVec1.size();
+    // CString temp { L"标识符 1 向量 =\r\n" };
+    // for (int i = 0; i < size; ++i) {
+    //     (temp += std::to_wstring(idVec1[i].second).c_str()) += ",";
+    // }
+    // temp += L"\r\n标识符 2 向量 =\r\n";
+    // for (int i = 0; i < size; ++i) {
+    //     (temp += std::to_wstring(idVec2[i].second).c_str()) += ",";
+    // }
+    // temp += L"\r\n";
+    // TRACE(temp);
+
+    // 分析街区距离和欧氏距离
+    double keyL1Norm = getL1Norm(keyVec1, keyVec2);
+    double keyL2Norm = getL2Norm(keyVec1, keyVec2);
+    double keyCosDis = getCosDistance(keyVec1, keyVec2);
+    double idL1Norm  = getL1Norm(idVec1, idVec2);
+    double idL2Norm  = getL2Norm(idVec1, idVec2);
+    double idCosDis  = getCosDistance(idVec1, idVec2);
+    double wordSimil = exp(-0.0003 * keyL2Norm + -0.0002 * idL2Norm);
+    double finalSimil =
+        (keyCosDis * 0.6 + idCosDis * 0.4) * 0.8 + wordSimil * 0.2;
+    auto str = [](double a) { return std::to_wstring(a); };
+    CString out3 { L"=== === === === === === === ===\r\n" };
+    ((out3 += L"关键词的街区距离为: ") += str(keyL1Norm).c_str()) += L"\r\n";
+    ((out3 += L"关键词的欧式距离为: ") += str(keyL2Norm).c_str()) += L"\r\n";
+    ((out3 += L"关键词的余弦距离为: ") += str(keyCosDis).c_str()) += L"\r\n";
+    ((out3 += L"标识符的街区距离为: ") += str( idL1Norm).c_str()) += L"\r\n";
+    ((out3 += L"标识符的欧式距离为: ") += str( idL2Norm).c_str()) += L"\r\n";
+    ((out3 += L"标识符的余弦距离为: ") += str( idCosDis).c_str()) += L"\r\n";
+    (out3 += L"关键词的相似度 (负指数距离) 为: ") += str(wordSimil).c_str();
+    out3 += L"\r\n=== === === === === === === ===\r\n";
+    out3 += L"💚💚💚 代码总体相似度:\r\n💛💛💛 ";
+    (out3 += str(finalSimil).c_str()) += L"\r\n💖💖💖 总结: ";
+    if (finalSimil >= 0.99) {
+        out3 += L"这很可能是同一份代码\r\n";
+    } else if (finalSimil >= 0.90) {
+        out3 += L"这两份代码非常相似\r\n";
+    } else if (finalSimil >= 0.75) {
+        out3 += L"这两份代码不太相似\r\n";
+    } else {
+        out3 += L"这两份代码不是同一份代码\r\n";
+    }
+
+    return out1 + out2 + out3;
+}
+
+
 void analyse(CWnd *codebox1, CWnd *codebox2,
         CWnd *infobox, CWnd *tokenbox1, CWnd *tokenbox2) {
 
@@ -269,12 +460,12 @@ void analyse(CWnd *codebox1, CWnd *codebox2,
             if (size >= len) { break; }
             if (word != L"") {
                 (words += word) += L"\r\n";
+                if (not isalpha(word[0])) { continue; }
                 ++map[std::wstring{word}];
             }
         }
         token->SetWindowTextW(words);
 
-        // 分析这些关键词
         countOutput += L"=== === === === === === === ===\r\n";
         countOutput += box == codebox1 ? L"代码 1 " : L"代码 2 ";
         countOutput += L"的词频列表是: \r\n";
@@ -286,7 +477,12 @@ void analyse(CWnd *codebox1, CWnd *codebox2,
         }
     }
 
+    // 分析这些关键词
+    CString diffOutput = calcDiff(wordMap1, wordMap2);
+
     // 写入分析结果
     countOutput += L"=== === === === === === === ===\r\n分析完成\r\n";
-    infobox->SetWindowTextW(countOutput);
+
+    CString allOutput { diffOutput + countOutput };
+    infobox->SetWindowTextW(allOutput);
 }

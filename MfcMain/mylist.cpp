@@ -112,7 +112,7 @@ public:
      * @brief 获得头部迭代器
      * @return iterator
      */
-    iterator begin() {
+    iterator begin() const {
         return _head->_next;
     }
 
@@ -121,7 +121,7 @@ public:
      * @brief 获得尾后迭代器
      * @return iterator
      */
-    iterator end() {
+    iterator end() const {
         return _head;
     }
 
@@ -204,7 +204,7 @@ public:
      * @brief 返回元素个数
      * @return size_t
      */
-    size_t size() {
+    size_t size() const {
         return _size;
     }
 

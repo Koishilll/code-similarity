@@ -5,6 +5,8 @@
 
 
 #include "pch.h"
+#include "myvec.cpp"
+#include "mylist.cpp"
 
 
 using std::string;
@@ -80,11 +82,11 @@ public:
 template <typename key_t, typename elm_t>
 class mymap {
 private:
-    using val_t = pair<key_t, elm_t>;
-    using val_hash_t = pair<val_t, unsigned>;
     using _self_t = mymap<key_t, elm_t>;
 
 public:
+    using val_t = pair<key_t, elm_t>;
+    using val_hash_t = pair<val_t, unsigned>;
     using iterator = _map_iterator<key_t, elm_t>;
 
     // 初始化 128 个桶
@@ -111,7 +113,7 @@ public:
      * @brief 获得头部迭代器
      * @return iterator
      */
-    iterator begin() {
+    iterator begin() const {
         return _table.begin();
     }
 
@@ -120,7 +122,7 @@ public:
      * @brief 获得尾后迭代器
      * @return iterator
      */
-    iterator end() {
+    iterator end() const {
         return _table.end();
     }
 
@@ -138,7 +140,7 @@ public:
      * @brief 返回元素个数
      * @return size_t
      */
-    size_t size() {
+    size_t size() const {
         return _table.size();
     }
 
@@ -148,7 +150,7 @@ public:
      * @param key
      * @return iterator 查找成功返回对应位置迭代器, 否则返回 end()
      */
-    iterator find(const key_t &key) {
+    iterator find(const key_t &key) const {
         return _myfind(key, _hash(key));
     }
 

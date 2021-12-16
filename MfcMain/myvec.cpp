@@ -81,7 +81,7 @@ public:
      * @brief 获得头部迭代器
      * @return elm_t
      */
-    elm_t *begin() {
+    elm_t *begin() const {
         return _first;
     }
 
@@ -90,8 +90,18 @@ public:
      * @brief 获得尾后迭代器
      * @return elm_t
      */
-    elm_t *end() {
+    elm_t *end() const {
         return _last;
+    }
+
+
+    /**
+     * @brief 重载 const [] 取出元素, 不可修改, 不检查越界
+     * @param index 指定位置
+     * @return elm_t&
+     */
+    const elm_t &operator[](size_t index) const {
+        return _first[index];
     }
 
 
@@ -109,7 +119,7 @@ public:
      * @brief 返回元素个数
      * @return size_t
      */
-    size_t size() {
+    size_t size() const {
         return _last - _first;
     }
 
@@ -118,7 +128,7 @@ public:
      * @brief 返回扩容前最大容量
      * @return size_t
      */
-    size_t max_size() {
+    size_t max_size() const {
         return _end - _first;
     }
 

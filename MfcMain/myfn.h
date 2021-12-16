@@ -1,5 +1,8 @@
 ﻿#pragma once
 #include "pch.h"
+#include "myvec.cpp"
+#include "mylist.cpp"
+#include "mymap.cpp"
 
 
 /**
@@ -34,6 +37,56 @@ void openFileToEditbox(CWnd *editbox);
  * @return std::pair<CString, size_t> 字符串和本次扫描的终止位置
  */
 auto getNextToken(CString &code, size_t pos);
+
+
+/**
+ * @brief 计算两个向量的内积
+ * @param vec1
+ * @param vec2
+ * @return double
+ */
+double getInnerProduct(const myvec<pair<std::wstring, int>> &vec1,
+    const myvec<pair<std::wstring, int>> &vec2);
+
+
+/**
+ * @brief 计算 L1 范数
+ * @param vec1
+ * @param vec2
+ * @return double
+ */
+double getL1Norm(const myvec<pair<std::wstring, int>> &vec1,
+    const myvec<pair<std::wstring, int>> &vec2);
+
+
+/**
+ * @brief 计算 L2 范数
+ * @param vec1
+ * @param vec2
+ * @return double
+ */
+double getL2Norm(const myvec<pair<std::wstring, int>> &vec1,
+    const myvec<pair<std::wstring, int>> &vec2);
+
+
+/**
+ * @brief 计算余弦距离
+ * @param vec1
+ * @param vec2
+ * @return double
+ */
+double getCosDistance(const myvec<pair<std::wstring, int>> &vec1,
+    const myvec<pair<std::wstring, int>> &vec2);
+
+
+/**
+ * @brief 计算两个代码的差距
+ * @param map1 代码 1 的词频
+ * @param map2 代码 2 的词频
+ * @return CString 分析结果
+ */
+CString calcDiff(const mymap<std::wstring, int> &map1,
+    const mymap<std::wstring, int> &map2);
 
 
 /**
