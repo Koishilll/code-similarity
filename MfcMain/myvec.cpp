@@ -96,7 +96,7 @@ public:
 
 
     /**
-     * @brief 重载 const [] 取出元素, 不可修改, 不检查越界
+     * @brief 重载 const [] 取出元素, 不检查越界
      * @param index 指定位置
      * @return elm_t&
      */

@@ -401,9 +401,9 @@ CString calcDiff(const mymap<std::wstring, int> &map1,
     double idL1Norm  = getL1Norm(idVec1, idVec2);
     double idL2Norm  = getL2Norm(idVec1, idVec2);
     double idCosDis  = getCosDistance(idVec1, idVec2);
-    double wordSimil = exp(-0.0003 * keyL2Norm + -0.0002 * idL2Norm);
+    double wordSimil = exp(-0.0002 * keyL2Norm + -0.00015 * idL2Norm);
     double finalSimil =
-        (keyCosDis * 0.6 + idCosDis * 0.4) * 0.8 + wordSimil * 0.2;
+        (keyCosDis * 0.6 + idCosDis * 0.4) * 0.85 + wordSimil * 0.15;
     auto str = [](double a) { return std::to_wstring(a); };
     CString out3 { L"=== === === === === === === ===\r\n" };
     ((out3 += L"关键词的街区距离为: ") += str(keyL1Norm).c_str()) += L"\r\n";
@@ -418,9 +418,13 @@ CString calcDiff(const mymap<std::wstring, int> &map1,
     (out3 += str(finalSimil).c_str()) += L"\r\n💖💖💖 总结: ";
     if (finalSimil >= 0.99) {
         out3 += L"这很可能是同一份代码\r\n";
+    } else if (finalSimil >= 0.95) {
+        out3 += L"这两份代码极为相似\r\n";
     } else if (finalSimil >= 0.90) {
         out3 += L"这两份代码非常相似\r\n";
-    } else if (finalSimil >= 0.75) {
+    } else if (finalSimil >= 0.80) {
+        out3 += L"这两份代码比较相似\r\n";
+    } else if (finalSimil >= 0.60) {
         out3 += L"这两份代码不太相似\r\n";
     } else {
         out3 += L"这两份代码不是同一份代码\r\n";

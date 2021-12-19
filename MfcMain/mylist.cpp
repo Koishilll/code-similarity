@@ -105,6 +105,7 @@ public:
 
     ~mylist() {
         clear();
+        delete _head;
     }
 
 
